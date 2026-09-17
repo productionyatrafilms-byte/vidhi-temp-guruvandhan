@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guruvandan Vidhi</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="./assets/css/gyan.css?v=13">
+</head>
+
+<body id="body" class="gyan-page">
+    <!-- [bg-img] — position:fixed, full-viewport, OUTSIDE `.stage` (which stays locked to the
+         1920:1080 frame for everything else) so it crops to fill wider/narrower screens instead
+         of letterboxing, same technique as the bg-layer in the old Meghkumar build. -->
+    <div class="bg-layer" id="bgLayer">
+        <img class="bg-layer__photo" src="./assets/images/bg.png" alt="">
+        <img class="bg-layer__overlay" src="./assets/images/overlay-pattern.png" alt="">
+    </div>
+
+    <!-- Home / language — global, never touch. Outside `.stage` (same reasoning as .bg-layer
+         above): fixed to the viewport corners rather than locked to the 1920:1080 canvas. -->
+    <div id="langSelect">
+        <div id="language">
+            <label><input type="radio" onclick="val('English')" name="lang" id="en" value="English">
+                <span>E</span>
+            </label>
+            <label><input type="radio" onclick="val('Hindi')" name="lang" id="hi" value="Hindi">
+                <span>H</span>
+            </label>
+            <label><input type="radio" onclick="val('Gujrati')" name="lang" id="gu" value="Gujrati">
+                <span>G</span>
+            </label>
+        </div>
+    </div>
+
+    <a href="./index.html" class="left-corners btn-home" id="btnHome">
+        <img src="./assets/images/HOME.png" alt="Home">
+    </a>
+
+    <div class="stage" id="stage" data-state="idle">
+        <div class="stage__floor-shadow" id="floorShadow"></div>
+
+        <!-- idle title + closed scroll — grouped so the first-load reveal (hold on the plain
+             background, then zoom the whole composition in from the center as one unit) can't
+             let the two drift out of alignment with each other. -->
+        <div class="idle-composition" id="idleComposition">
+            <!-- idle poster — node 1:2494 -->
+            <h1 class="gyan-idle-title" id="idleTitle">
+                <span class="english">Guruvandan <br/> Vidhi</span>
+                <span class="hindi">गुरुवंदन  <br/>विधि</span>
+                <span class="gujrati">ગુરુવંદન <br/> વિધિ</span>
+            </h1>
+
+            <!-- scroll-pair — rollerLeft + rollerRight locked together as one rigid unit so the
+                 first-load swing-in (tilted 30° at load, rotating to upright as they zoom in)
+                 rotates the pair around its shared centre rather than each bar independently.
+                 scroll rollers: flattened Figma export (@assets/images/scrollleft.png /
+                 scrollright.png), closed (touching, idle) or opened (moved apart) via [data-state] -->
+            <div class="scroll-pair" id="scrollPair">
+                <!-- .scroll-roller__spin: a repeating highlight-band pattern scrolled across the
+                     barrel via background-position — simulates the cylinder's surface turning as
+                     it moves (a "barber pole" effect) without rotating the flat sprite itself,
+                     which would flip to a mirrored, nonexistent "backside" past ±90°. -->
+                <div class="scroll-roller scroll-roller--left" id="rollerLeft">
+                    <img src="./assets/images/scrollleft.png" alt="">
+                    <div class="scroll-roller__spin"></div>
+                </div>
+                <div class="scroll-roller scroll-roller--right" id="rollerRight">
+                    <img src="./assets/images/scrollright.png" alt="">
+                    <div class="scroll-roller__spin"></div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="idle-click" id="btnOpen" aria-label="Open Guruvandan Vidhi">
+            <span class="idle-click__label">
+                <span class="english">Click</span>
+                <span class="hindi">क्लिक करें</span>
+                <span class="gujrati">ક્લિક કરો</span>
+            </span>
+        </button>
+
+        <!-- header title, node 1:690 / 1:3950 — only visible once open. Isolation_Mode / _2 icons
+             flank the outside, a thin rule sits above and below the title text in between. -->
+        <div class="gyan-header" id="gyanHeader">
+            <img class="gyan-header__icon" src="./assets/images/Isolation_Mode.png" alt="">
+            <div class="gyan-header__title-frame">
+                <span class="gyan-header__rule"></span>
+                <h2 class="gyan-header__title">
+                    <span class="english">Guruvandan Vidhi</span>
+                <span class="hindi">गुरुवंदन विधि</span>
+                <span class="gujrati">ગુરુવંદન વિધિ</span>
+                </h2>
+                <span class="gyan-header__rule"></span>
+            </div>
+            <img class="gyan-header__icon" src="./assets/images/Isolation_Mode_2.png" alt="">
+        </div>
+
+        <!-- content card — one slide per Gyan type, each its own video
+             (assets/images/videos/1.mp4..5.mp4). Mati (1) and Shrut (2) also have real poster
+             art from Figma; Avadhi/Manahparyav/Keval (3-5) have no Figma frame so no poster
+             image exists for them yet — they just show the video's own first frame.
+             videoframe.png (blank parchment interior) sits behind the art so the reveal never
+             shows flat empty space while the scroll is rolling open — only ever the scroll's
+             own paper, with the art cropping in on top of it as the gap widens. -->
+        <div class="scroll-content" id="scrollContent">
+            <img class="scroll-content__frame" src="./assets/images/videoframe.png" alt="">
+            <div class="scroll-content__track" id="scrollTrack">
+                <div class="gyan-slide" data-gyan="mati">
+                    <video class="gyan-slide__art" poster="./assets/images/thumbnail.png" playsinline controls
+                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
+                        <source src="./assets/videos/1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="gyan-slide" data-gyan="shrut">
+                    <video class="gyan-slide__art" poster="./assets/images/content-shrut.png" playsinline controls
+                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
+                        <source src="./assets/videos/2.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="gyan-slide" data-gyan="avadhi">
+                    <video class="gyan-slide__art" poster="./assets/images/content-Avadhi.png" playsinline controls
+                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
+                        <source src="./assets/videos/3.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="gyan-slide" data-gyan="manahparyav">
+                    <video class="gyan-slide__art" poster="./assets/images/content-Manahparyav.png" playsinline controls
+                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
+                        <source src="./assets/videos/4.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="gyan-slide" data-gyan="keval">
+                    <video class="gyan-slide__art" poster="./assets/images/content-Keval.png" playsinline controls
+                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
+                        <source src="./assets/videos/5.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+        </div>
+
+        <!-- play controls: single centered play button at rest; clicking it smooth-crossfades
+             to a pause + replay pair while the video plays. Pause reverts to the solo play
+             button; replay seeks to 0 and keeps playing. Alongside the video's own native
+             controls bar, not instead of it. -->
+        <div class="scroll-play" id="scrollPlay">
+            <div class="scroll-play__solo">
+                <button type="button" class="scroll-play__icon-btn" id="btnPlay" aria-label="Play video">
+                    <img src="./assets/images/play.png" alt="">
+                </button>
+            </div>
+            <div class="scroll-play__playing">
+                <button type="button" class="scroll-play__icon-btn" id="btnPause" aria-label="Pause video">
+                    <img src="./assets/images/pause.png" alt="">
+                </button>
+                <button type="button" class="scroll-play__icon-btn" id="btnReplay" aria-label="Replay video from start">
+                    <img src="./assets/images/refresh.png" alt="">
+                </button>
+            </div>
+        </div>
+
+        <!-- sutra pill buttons (no slider/carousel) -->
+        <div class="gyan-nav" id="gyanNav">
+            <div class="gyan-nav__pills">
+                <!-- transliterations not supplied in Figma — placeholder Hindi/Gujarati, flag for review -->
+                <button type="button" class="gyan-nav__pill-btn" id="btnIchhakar">
+                    <span class="english">Ichhakar Sutra</span>
+                    <span class="hindi">इच्छाकार सूत्र</span>
+                    <span class="gujrati">ઇચ્છાકાર સૂત્ર</span>
+                </button>
+                <button type="button" class="gyan-nav__pill-btn" id="btnAbbhutthio">
+                    <span class="english">Abbhutthio Sutra</span>
+                    <span class="hindi">अब्भुट्ठियो सूत्र</span>
+                    <span class="gujrati">અબ્ભુટ્ઠિઓ સૂત્ર</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./assets/js/jquery-3.7.1.js"></script>
+    <script src="./assets/js/custom.js"></script>
+    <script src="./assets/js/gyan.js?v=7"></script>
+</body>
+
+</html>

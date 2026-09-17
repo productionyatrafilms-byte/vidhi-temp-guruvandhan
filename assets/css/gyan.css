@@ -1,0 +1,660 @@
+/* index.html — "Gyan ke Dohe" video slate
+   Built from Figma nodes 1:2494 (idle/click), 1:389 (scroll open, header hidden — appears to be
+   a transitional/unused variant, kept as the "open, no header" moment right after click),
+   1:690 (open + header + play, Mati Gyan) and 1:3950 (open + header + play, Shrut Gyan) on the
+   Vidhi-video-slates file (figma-links.md). Only Mati Gyan and Shrut Gyan have real illustrated
+   content in Figma; Avadhi/Manahparyav/Keval Gyan are referenced only as nav-pill labels with no
+   frame supplied, so those three slides render a flagged placeholder card instead of invented art.
+
+   The scroll roller (red barrel + gold caps) uses the flattened export at
+   assets/images/scrollleft.png / scrollright.png rather than rebuilding it from Figma's
+   masked SVG layers. */
+
+:root {
+    --color-pill-from: #ffaaa9;
+    --color-pill-to: #ca0c0c;
+    --color-pill-border: #fff2e2;
+    --color-bg-fallback: #3a0016;
+    --color-placeholder-bg: #241442;
+}
+
+/* first-load reveal: plain background holds on its own first, then the title + closed-scroll
+   composition grows forward from a tiny, blurred point at dead center — a moderate, continuous
+   ease-out (not an extreme/expo curve, which front-loads nearly all the growth into the first
+   few frames and reads as an instant "pop" rather than a scale-up you can actually see), a small
+   overshoot past 100%, then a short settle back down. */
+@keyframes zoom-reveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.05);
+        filter: blur(1cqw);
+        animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    30% {
+        opacity: 1;
+    }
+    78% {
+        transform: scale(1.08);
+        filter: blur(0);
+        animation-timing-function: ease-out;
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* scroll-bar swing-in: the pair starts tilted 45° clockwise and rotates as a single rigid unit
+   back to upright while `.idle-composition`'s zoom-reveal (above) grows the whole thing from
+   tiny to full size — the two effects run on the same timeline so the rotation and the
+   scale-up read as one swinging motion, not a spin layered on top of a separate zoom.
+
+   Only two keyframes (start/end) — the pendulum overshoot comes from the easing curve itself
+   (an ease-out-back cubic-bezier, whose progress value overshoots past 1 before settling), not
+   from a separate keyframe stop partway through. Splitting the overshoot into its own 90%→100%
+   segment (each with its own eased-out timing-function) put a zero-velocity moment at the 90%
+   boundary — the incoming segment decelerates to a stop right as it arrives, the outgoing one
+   starts fast again — which is exactly the "not continuous near vertical" stutter reported.
+   One bezier for the whole rotation has no such seam. */
+@keyframes roller-swing-in {
+    0% {
+        transform: rotate(45deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@font-face {
+    font-family: "Italiana";
+    src: local("Italiana");
+}
+
+@font-face {
+    font-family: "Otama";
+    src: local("Otama");
+}
+
+/* matches template/projects/new/css/style.css (not the old template): html just gets
+   height:100% with no overflow override (default visible), and the scrollbar — hidden
+   horizontal, auto vertical — lives on body, same as the shared style.css `body` rule already
+   in this project. On mobile the visual viewport can end up shorter than the `vh`-based height
+   this layout was computed against (address bar showing/hiding, etc.); without this, that
+   difference would be clipped with no way to reach it. */
+html {
+    height: 100%;
+}
+
+body.gyan-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden auto;
+    background: var(--color-bg-fallback);
+}
+
+/* ===== [bg-img] shared background — sits OUTSIDE `.stage`, fixed across the whole viewport
+   (not locked to the 16:9 frame), so it crops to fill wider/narrower screens rather than
+   letterboxing. Same technique as the bg-layer in the old Meghkumar build. ===== */
+.bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.bg-layer__photo,
+.bg-layer__overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bg-layer__overlay {
+    mix-blend-mode: overlay;
+    opacity: 0.12;
+}
+
+/* ===== stage — locked to Figma's 1920:1080 canvas, scales like a Figma preview =====
+   `container-type: inline-size` turns .stage into a query container, so every `cqw` used
+   below (everywhere inside .stage) means "1% of the stage's own width" — regardless of how
+   big or small the stage itself ends up. That's what actually fixes the old clipping bug:
+   with plain `vw`, capping .stage's width by `vh` (to stop it exceeding the viewport height on
+   landscape/short screens) made the stage narrower than 100vw, but every vw-sized child kept
+   computing against the full viewport instead of the now-smaller stage — oversized relative to
+   the box that's supposed to contain it, and clipped by this element's own overflow:hidden.
+   cqw sidesteps that entirely, so the vh cap (limiting how much extra scroll a short/landscape
+   viewport ever needs) can come back without reintroducing the mismatch. */
+.stage {
+    position: relative;
+    z-index: 1;
+    container-type: inline-size;
+    width: min(100%, 177.78vh);
+    aspect-ratio: 1920 / 1080;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 1.5625cqw;
+}
+
+.stage__floor-shadow {
+    position: absolute;
+    top: 91.2%;
+    left: 45.55%;
+    width: 8.91%;
+    height: 1.89%;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.55), transparent 70%);
+    transition: left 1.4s ease-out, width 1.4s ease-out;
+}
+
+.stage[data-state="open"] .stage__floor-shadow {
+    left: 17.34%;
+    width: 65.33%;
+}
+
+/* ===== home / language — global, never touch =====
+   Both now sit outside `.stage` (siblings in the body, like .bg-layer) — pinned to the viewport
+   corners in vw rather than locked to the 1920:1080 canvas, same trade-off the old Meghkumar
+   build made for the same elements. */
+.btn-home {
+    /* fixed, not absolute — now that the body can scroll vertically on short mobile
+       viewports, absolute (anchored to the initial containing block) would scroll away with
+       the page; fixed keeps it pinned to the viewport corner regardless. */
+    position: fixed;
+    left: 2.6vw;
+    top: 2.8vw;
+    width: 3.1vw;
+    height: auto;
+    z-index: 20;
+    /* hidden on the idle/opening screen, fades in once you've actually gone inside (body gets
+       .gyan-open on the same click that opens the scroll — see gyan.js) */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+body.gyan-open .btn-home {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-home img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* language pill — pure CSS, no image: style.css's shared rules size each circle by padding
+   around a single letter, which isn't equal on every side (E is narrower than H/G), so it drew
+   as an oval rather than a circle. Fixed sizes below (width == height) instead of padding are
+   what actually guarantee a circle regardless of the letter inside. */
+#langSelect {
+    position: fixed;
+    right: 2.6vw;
+    top: 2.8vw;
+    z-index: 20;
+}
+
+#language {
+    background: transparent;
+    border: 0.16vw solid #fff;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4vw;
+    padding: 0.35vw 0.6vw;
+}
+
+#langSelect label {
+    padding: 0;
+}
+
+#langSelect label span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.85vw;
+    height: 1.85vw;
+    padding: 0;
+    border: 0.12vw solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    font-size: 0.95vw;
+    line-height: 1;
+}
+
+/* ===== idle composition (title + closed scroll) — zooms in together as one unit on first load ===== */
+.idle-composition {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    animation: zoom-reveal 1.5s linear 0.9s backwards;
+}
+
+.gyan-idle-title {
+    position: absolute;
+    left: 0;
+    top: 28%;
+    width: 100%;
+    margin: 0;
+    text-align: center;
+    color: #fff;
+    font-weight: 400;
+    font-size: 13cqw;
+    text-shadow: 0 0.3cqw 1cqw rgba(0, 0, 0, 0.45);
+    /* above .scroll-roller's z-index:8 — the closed scroll sits behind the title, not over it */
+    z-index: 9;
+    transition: opacity 0.4s ease;
+}
+
+/* first/idle title — Italiana overrides style.css's global .english (Baloo) for this element only */
+.gyan-idle-title .english {
+    font-family: "Italiana", "Playfair Display", serif;
+}
+
+/* width/height used to be fixed (just enough for "Click") — now auto-sized with padding so
+   the longer Hindi/Gujarati translations below don't overflow or clip; centered via
+   left:50% + translateX(-50%) instead of a hand-picked left offset. */
+.idle-click {
+    position: absolute;
+    left: 50%;
+    top: 89%;
+    transform: translateX(-50%);
+    padding: 0.3cqw 1.6cqw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 2.6cqw;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0.21cqw 0.21cqw rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    z-index: 6;
+    /* backwards (not forwards) fill: hides it for the delay, then hands opacity back to the
+       normal cascade once done — so the later [data-state="open"] opacity:0 rule below still
+       takes effect instead of being permanently pinned by this animation's own end state. */
+    animation: fade-in 0.3s ease 2.4s backwards;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.idle-click__label {
+    color: #fff;
+    font-size: 2.1cqw;
+    text-shadow: 0 0.21cqw 0.21cqw rgba(0, 0, 0, 0.25);
+    white-space: nowrap;
+}
+
+.idle-click:hover {
+    transform: translateX(-50%) scale(1.05);
+}
+
+.stage[data-state="open"] .gyan-idle-title,
+.stage[data-state="open"] .idle-click {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ===== header title (shown once the scroll is open) ===== */
+.gyan-header {
+    position: absolute;
+    left: 0;
+    top: 5.15%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1cqw;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.5s;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.stage[data-state="open"] .gyan-header {
+    opacity: 1;
+}
+
+.gyan-header__icon {
+    width: 2.81cqw;
+    height: auto;
+}
+
+.gyan-header__title-frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35cqw;
+}
+
+.gyan-header__rule {
+    display: block;
+    width: 21.3cqw;
+    height: 0.08cqw;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.gyan-header__title {
+    margin: 0;
+    color: #fff;
+    font-size: 2.9cqw;
+    letter-spacing: 0.15cqw;
+}
+
+/* later/header title — Baloo overrides style.css's global .english (also Baloo, kept explicit
+   here since this element is the one the brief calls out) */
+.gyan-header__title .english {
+    font-family: "Baloo", cursive, sans-serif;
+}
+
+/* ===== scroll-pair — wraps both rollers so they rotate as one rigid body around their shared
+   centre on load, independent of .idle-composition's own scale/opacity/blur reveal. ===== */
+.scroll-pair {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* the rollers' own midpoint (between 45.38% and 54.05% closed) — practically dead centre,
+       matching the outer zoom's own transform-origin so the swing reads as part of one motion */
+    transform-origin: 49.7% 50%;
+    animation: roller-swing-in 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s backwards;
+}
+
+/* ===== scroll rollers — flattened PNG export (assets/images/scrollleft.png / scrollright.png),
+   replaces the earlier multi-layer CSS-mask reconstruction with the real asset. ===== */
+.scroll-roller {
+    position: absolute;
+    top: 12.25%;
+    width: 4.34%;
+    height: 75.5%;
+    z-index: 8;
+    overflow: hidden;
+    /* plain ease-out, no overshoot/bounce — a simple roll to a stop */
+    transition: left 1.4s ease-out;
+}
+
+.scroll-roller img {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* barrel-only highlight bands (inset from the gold caps top/bottom), scrolled sideways many
+   tile-widths while the roller moves — the "surface" keeps turning for the whole 1.4s roll
+   instead of a single limited-angle tilt, with none of the mirrored-backside risk a rotated
+   flat sprite would have. */
+.scroll-roller__spin {
+    position: absolute;
+    left: 0;
+    top: 12%;
+    width: 100%;
+    height: 76%;
+    background-image: repeating-linear-gradient(100deg,
+        rgba(255, 255, 255, 0.32) 0%,
+        rgba(255, 255, 255, 0.32) 8%,
+        transparent 8%,
+        transparent 22%,
+        rgba(0, 0, 0, 0.28) 22%,
+        rgba(0, 0, 0, 0.28) 30%,
+        transparent 30%,
+        transparent 50%);
+    background-size: 65% 100%;
+    background-repeat: repeat;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    transition: background-position 1.4s ease-out;
+}
+
+.scroll-roller--left {
+    left: 45.38%;
+}
+
+.scroll-roller--right {
+    left: 49.71%;
+}
+
+.stage[data-state="open"] .scroll-roller--left {
+    left: 20.2%;
+}
+
+.stage[data-state="open"] .scroll-roller--right {
+    left: 75.46%;
+}
+
+.stage[data-state="open"] .scroll-roller--left .scroll-roller__spin {
+    background-position: 1300% 0;
+}
+
+.stage[data-state="open"] .scroll-roller--right .scroll-roller__spin {
+    background-position: -1300% 0;
+}
+
+/* ===== content card (Mati / Shrut / placeholders) =====
+   No separate fade/scale-in and no delay: `left`/`width` use the exact same transition (duration,
+   easing, no delay) as .scroll-roller's own open/close `left` transition below, anchored to the
+   rollers' facing edges (45.38%+4.34% width / 49.71% closed → 20.2%+4.34% / 75.46% open). That
+   keeps the revealed area glued to the live gap between the rollers as they move — it grows
+   continuously as the scroll unrolls instead of popping in afterwards with a gap showing behind. */
+.scroll-content {
+    position: absolute;
+    left: 49.715%;
+    top: 24.35%;
+    width: 0%;
+    height: 50.93%;
+    overflow: hidden;
+    border-radius: 0.8cqw;
+    z-index: 7;
+    /* same plain ease-out, same duration, as .scroll-roller's `left` transition — no overshoot,
+       just a simple reveal that grows exactly in step with the roll */
+    transition: left 1.4s ease-out, width 1.4s ease-out;
+}
+
+.stage[data-state="open"] .scroll-content {
+    left: 24.54%;
+    width: 50.92%;
+}
+
+/* blank parchment interior — sits behind the art so there's never a flat/empty gap while the
+   art crops in with the growing box, only ever the scroll's own paper */
+.scroll-content__frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* the art (content-mati.png etc.) stays hidden while the scroll is rolling open — only
+   videoframe.png's blank parchment is visible during the reveal — then fades in on top of it
+   once the roll finishes (delay matches .scroll-roller's 1.4s open transition exactly). */
+.scroll-content__track {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease 1.4s;
+}
+
+.stage[data-state="open"] .scroll-content__track {
+    opacity: 1;
+}
+
+/* paging between slides (prev/next) is a slow crossfade, not a horizontal slide: every slide is
+   stacked in the same spot and only the active one is opaque. */
+.gyan-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    /* opacity:0 alone doesn't stop hit-testing — every inactive slide is still a full-size
+       absolutely-positioned box stacked on top of (or under) the active one, so without this
+       the invisible slides swallow mouse/hover/click meant for the active video's own native
+       controls underneath. */
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+.gyan-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.gyan-slide__art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gyan-slide--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-placeholder-bg);
+}
+
+.gyan-slide__placeholder-note {
+    margin: 0;
+    padding: 0 4cqw;
+    text-align: center;
+    color: #e8c98a;
+    font-size: 1.4cqw;
+    line-height: 1.5;
+}
+
+/* ===== play buttons (alongside the video's own native controls bar, not instead of it) ===== */
+.scroll-play {
+    position: absolute;
+    left: 43.98%;
+    top: 45.19%;
+    width: 11.46%;
+    height: 9.63%;
+    z-index: 9;
+    opacity: 0;
+    transition: opacity 0.4s ease 1.3s;
+}
+
+.stage[data-state="open"] .scroll-play {
+    opacity: 1;
+}
+
+/* solo play button (rest state) and the pause+replay pair (playing state) occupy the same
+   spot and crossfade between each other — smooth, not an instant swap. */
+.scroll-play__solo,
+.scroll-play__playing {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.35s ease;
+}
+
+.scroll-play__solo {
+    opacity: 1;
+}
+
+.scroll-play__playing {
+    opacity: 0;
+    gap: 6%;
+    pointer-events: none;
+}
+
+.scroll-play.is-playing .scroll-play__solo {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.scroll-play.is-playing .scroll-play__playing {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.scroll-play__icon-btn {
+    width: 47%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.scroll-play__icon-btn img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ===== bottom nav: sutra pill buttons (no slider/carousel) ===== */
+.gyan-nav {
+    position: absolute;
+    left: 0;
+    top: 82.1%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s ease 1.35s;
+    z-index: 9;
+}
+
+.stage[data-state="open"] .gyan-nav {
+    opacity: 1;
+}
+
+.gyan-nav__pills {
+    --pill-h: 3.7cqw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5%;
+}
+
+/* sized by its own text + padding (not a % of the flex row, which has no fixed width of its
+   own) so each button hugs its label instead of stretching/squishing unevenly. */
+.gyan-nav__pill-btn {
+    height: var(--pill-h);
+    padding: 0 2.4cqw;
+    white-space: nowrap;
+    border: 0.16cqw solid var(--color-pill-border);
+    border-radius: 5.25cqw;
+    background: linear-gradient(90deg, var(--color-pill-from), var(--color-pill-to));
+    box-shadow: 0 0.57cqw 0.8cqw -0.05cqw rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-shadow: 0 0.05cqw 0 rgba(0, 0, 0, 0.25);
+    font-size: 1.6cqw;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.gyan-nav__pill-btn:hover {
+    transform: scale(1.03);
+}
+
+@media screen and (max-width: 768px) {
+    .idle-click__label,
+    .gyan-header__title,
+    .gyan-nav__pill-btn {
+        letter-spacing: 0;
+    }
+}

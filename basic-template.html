@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Say no to Mobile gamnes</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+    
+</head>
+
+<body id="body">
+    <div id="langSelect">
+        <div id="language">
+            <label><input type="radio" onclick="val('English')" name="lang" id="en" value="English">
+                <span>E</span>
+            </label>
+            <label><input type="radio" onclick="val('Hindi')" name="lang" id="hi" value="Hindi">
+                <span>H</span>
+            </label>
+            <label><input type="radio" onclick="val('Gujrati')" name="lang" id="gu" value="Gujrati">
+                <span>G</span>
+            </label>
+        </div>
+    </div>
+
+    <a href="./index.html" style="width: 4vw;position: absolute;top: 4%;left: 2%;z-index: 2;" class="left-corners">
+        <img src="./assets/images/home.svg" alt="home" style="width: 100%;height: auto;">
+    </a>
+
+    <img src="./assets/images/background.png" alt="" style="position: absolute;top: 0;width: 100%;height: 100%;">
+    <div class="main-container" style="position: relative;">
+       
+    </div>
+    <script src="./assets/js/djp.js"></script>
+    <script src="./assets/js/jquery-3.7.1.js"></script>
+    <script src="./assets/js/custom.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.sideeffect').on('click', function () {
+                var url = $(this).data('href');
+                window.location.href = url;
+            });
+            $('.benefits').on('click', function () {
+                var url = $(this).data('href');
+                window.location.href = url;
+            });
+            $('.prevention').on('click', function () {
+                var url = $(this).data('href');
+                window.location.href = url;
+            });
+        });
+    </script>
+</body>
+
+</html>
