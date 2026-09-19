@@ -248,13 +248,13 @@ body.gyan-open .btn-home {
 .gyan-idle-title {
     position: absolute;
     left: 0;
-    top: 28%;
+    top: 25%;
     width: 100%;
     margin: 0;
     text-align: center;
     color: #fff;
     font-weight: 400;
-    font-size: 13cqw;
+    font-size: 9vw;
     text-shadow: 0 0.3cqw 1cqw rgba(0, 0, 0, 0.45);
     /* above .scroll-roller's z-index:8 — the closed scroll sits behind the title, not over it */
     z-index: 9;
