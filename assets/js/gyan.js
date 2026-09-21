@@ -26,10 +26,10 @@
         scrollPlay.classList.toggle('is-playing', isPlaying);
     }
 
-    function playFromStart() {
+    function playFrom(seconds) {
         var video = activeVideo();
         if (!video) { return; }
-        video.currentTime = 0;
+        video.currentTime = seconds;
         video.play();
         setPlaying(true);
     }
@@ -50,9 +50,9 @@
 
     btnOpen.addEventListener('click', open);
 
-    // both sutra buttons play the same (only) video, 1.mp4, from the start
-    btnIchhakar.addEventListener('click', playFromStart);
-    btnAbbhutthio.addEventListener('click', playFromStart);
+    // both sutra buttons play the same (only) video, 1.mp4, but seek to their own timestamp first
+    btnIchhakar.addEventListener('click', function () { playFrom(19); });
+    btnAbbhutthio.addEventListener('click', function () { playFrom(46); });
 
     btnPlay.addEventListener('click', function () {
         var video = activeVideo();
