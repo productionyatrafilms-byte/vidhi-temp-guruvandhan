@@ -48,9 +48,9 @@ function val(selectedLang) {
 // programmatic val() call that restores the saved language on page load)
 document.addEventListener('DOMContentLoaded', function () {
     var langAudio = {
-        English: new Audio('./assets/audio/Eng.mpeg'),
-        Hindi: new Audio('./assets/audio/Hin.mpeg'),
-        Gujrati: new Audio('./assets/audio/Guj.mpeg'),
+        English: new Audio('./assets/audio/Eng.mp3'),
+        Hindi: new Audio('./assets/audio/Hin.mp3'),
+        Gujrati: new Audio('./assets/audio/Guj.mp3'),
     };
 
     document.querySelectorAll('#langSelect input[type="radio"]').forEach(function (input) {
@@ -60,6 +60,43 @@ document.addEventListener('DOMContentLoaded', function () {
             audio.pause();
             audio.currentTime = 0;
             audio.play().catch(function () {});
+        });
+    });
+
+    // play / pause / replay (refresh) button click sound
+    var clickAudio = new Audio('./assets/audio/click.mp3');
+    document.querySelectorAll('#btnPlay, #btnPause, #btnReplay').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            clickAudio.currentTime = 0;
+            clickAudio.play().catch(function () {});
+        });
+    });
+
+    // pill nav button click sound (only present on pages with two topic pills)
+    var pillAudio = new Audio('./assets/audio/topic.mp3');
+    document.querySelectorAll('.gyan-nav__pill-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            pillAudio.currentTime = 0;
+            pillAudio.play().catch(function () {});
+        });
+    });
+
+    // start page (idle -> open) click sound
+    var openAudio = new Audio('./assets/audio/transition/5.mp3');
+    var btnOpen = document.getElementById('btnOpen');
+    if (btnOpen) {
+        btnOpen.addEventListener('click', function () {
+            openAudio.currentTime = 0;
+            openAudio.play().catch(function () {});
+        });
+    }
+
+    // prev/next slide nav click sound (only present on pages with a slide swiper)
+    var swipeAudio = new Audio('./assets/audio/swipe.mp3');
+    document.querySelectorAll('#btnPrev, #btnNext').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            swipeAudio.currentTime = 0;
+            swipeAudio.play().catch(function () {});
         });
     });
 
