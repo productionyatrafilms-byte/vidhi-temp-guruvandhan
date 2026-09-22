@@ -16,6 +16,8 @@
     --color-pill-border: #fff2e2;
     --color-bg-fallback: #3a0016;
     --color-placeholder-bg: #241442;
+    --color-pill-active-from: #ffc493;
+    --color-pill-active-to: #ff5d12;
 }
 
 /* first-load reveal: plain background holds on its own first, then the title + closed-scroll
@@ -576,14 +578,22 @@ body.gyan-open .btn-home {
     pointer-events: none;
 }
 
-.scroll-play.is-playing .scroll-play__solo {
+.scroll-play.is-playing .scroll-play__solo,
+.scroll-play.is-ended .scroll-play__solo {
     opacity: 0;
     pointer-events: none;
 }
 
-.scroll-play.is-playing .scroll-play__playing {
+.scroll-play.is-playing .scroll-play__playing,
+.scroll-play.is-ended .scroll-play__playing {
     opacity: 1;
     pointer-events: auto;
+}
+
+/* ended state (segment finished, e.g. Ichhakar's 0:19-0:45 clip) — replay stays available,
+   but pause makes no sense once the video has actually stopped, so it's hidden. */
+.scroll-play.is-ended #btnPause {
+    display: none;
 }
 
 .scroll-play__icon-btn {
@@ -649,6 +659,11 @@ body.gyan-open .btn-home {
 
 .gyan-nav__pill-btn:hover {
     transform: scale(1.03);
+}
+
+/* whichever sutra button was clicked last */
+.gyan-nav__pill-btn.is-active {
+    background: linear-gradient(90deg, var(--color-pill-active-from), var(--color-pill-active-to));
 }
 
 @media screen and (max-width: 768px) {

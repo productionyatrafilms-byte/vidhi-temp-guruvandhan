@@ -23,7 +23,15 @@
     }
 
     function setPlaying(isPlaying) {
+        scrollPlay.classList.remove('is-ended');
         scrollPlay.classList.toggle('is-playing', isPlaying);
+    }
+
+    // video has stopped (segment finished or reached its natural end) — replay stays available,
+    // pause is hidden since there's nothing to pause any more.
+    function setEnded() {
+        scrollPlay.classList.remove('is-playing');
+        scrollPlay.classList.add('is-ended');
     }
 
     function playFrom(seconds) {
@@ -35,8 +43,8 @@
     }
 
     // plays only [start, end) of the video, then pauses — the pause listener below checks
-    // `pendingSegmentPause` and skips its usual setPlaying(false), so the pause+replay pair
-    // (including the refresh button) stays visible instead of reverting to the solo play button.
+    // `pendingSegmentPause` and calls setEnded() instead of its usual setPlaying(false), so the
+    // replay button stays visible (pause hidden) instead of reverting to the solo play button.
     function playSegment(start, end) {
         var video = activeVideo();
         if (!video) { return; }
@@ -72,10 +80,21 @@
 
     btnOpen.addEventListener('click', open);
 
+    function setActivePill(btn) {
+        btnIchhakar.classList.toggle('is-active', btn === btnIchhakar);
+        btnAbbhutthio.classList.toggle('is-active', btn === btnAbbhutthio);
+    }
+
     // both sutra buttons play the same (only) video, 1.mp4, but seek to their own timestamp first.
-    // Ichhakar plays only its own 0:19-0:46 portion, then stops (see playSegment).
-    btnIchhakar.addEventListener('click', function () { playSegment(19, 45); });
-    btnAbbhutthio.addEventListener('click', function () { playFrom(46); });
+    // Ichhakar plays only its own 0:19-0:45 portion, then stops (see playSegment).
+    btnIchhakar.addEventListener('click', function () {
+        setActivePill(btnIchhakar);
+        playSegment(19, 45);
+    });
+    btnAbbhutthio.addEventListener('click', function () {
+        setActivePill(btnAbbhutthio);
+        playFrom(46);
+    });
 
     btnPlay.addEventListener('click', function () {
         var video = activeVideo();
@@ -107,15 +126,15 @@
         if (!video) { return; }
         video.addEventListener('play', function () { setPlaying(true); });
         video.addEventListener('pause', function () {
-            // segment-end auto-pause (see playSegment) keeps the pause+replay pair visible
-            // instead of reverting to the solo play button
+            // segment-end auto-pause (see playSegment) — replay stays visible, pause hides
             if (video.pendingSegmentPause) {
                 video.pendingSegmentPause = false;
+                setEnded();
                 return;
             }
             setPlaying(false);
         });
-        video.addEventListener('ended', function () { setPlaying(false); });
+        video.addEventListener('ended', setEnded);
     });
 
     render();
