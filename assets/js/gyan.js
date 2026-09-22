@@ -74,7 +74,7 @@
 
     // both sutra buttons play the same (only) video, 1.mp4, but seek to their own timestamp first.
     // Ichhakar plays only its own 0:19-0:46 portion, then stops (see playSegment).
-    btnIchhakar.addEventListener('click', function () { playSegment(19, 46); });
+    btnIchhakar.addEventListener('click', function () { playSegment(19, 45); });
     btnAbbhutthio.addEventListener('click', function () { playFrom(46); });
 
     btnPlay.addEventListener('click', function () {
