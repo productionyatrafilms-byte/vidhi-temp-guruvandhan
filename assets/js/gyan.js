@@ -34,6 +34,28 @@
         setPlaying(true);
     }
 
+    // plays only [start, end) of the video, then pauses — the pause listener below checks
+    // `pendingSegmentPause` and skips its usual setPlaying(false), so the pause+replay pair
+    // (including the refresh button) stays visible instead of reverting to the solo play button.
+    function playSegment(start, end) {
+        var video = activeVideo();
+        if (!video) { return; }
+
+        function onTimeUpdate() {
+            if (video.currentTime >= end) {
+                video.removeEventListener('timeupdate', onTimeUpdate);
+                video.pendingSegmentPause = true;
+                video.pause();
+            }
+        }
+
+        video.removeEventListener('timeupdate', onTimeUpdate);
+        video.addEventListener('timeupdate', onTimeUpdate);
+        video.currentTime = start;
+        video.play();
+        setPlaying(true);
+    }
+
     function render() {
         slides.forEach(function (slide, i) {
             slide.classList.toggle('is-active', i === index);
@@ -50,8 +72,9 @@
 
     btnOpen.addEventListener('click', open);
 
-    // both sutra buttons play the same (only) video, 1.mp4, but seek to their own timestamp first
-    btnIchhakar.addEventListener('click', function () { playFrom(19); });
+    // both sutra buttons play the same (only) video, 1.mp4, but seek to their own timestamp first.
+    // Ichhakar plays only its own 0:19-0:46 portion, then stops (see playSegment).
+    btnIchhakar.addEventListener('click', function () { playSegment(19, 46); });
     btnAbbhutthio.addEventListener('click', function () { playFrom(46); });
 
     btnPlay.addEventListener('click', function () {
@@ -83,7 +106,15 @@
         var video = slide.querySelector('video');
         if (!video) { return; }
         video.addEventListener('play', function () { setPlaying(true); });
-        video.addEventListener('pause', function () { setPlaying(false); });
+        video.addEventListener('pause', function () {
+            // segment-end auto-pause (see playSegment) keeps the pause+replay pair visible
+            // instead of reverting to the solo play button
+            if (video.pendingSegmentPause) {
+                video.pendingSegmentPause = false;
+                return;
+            }
+            setPlaying(false);
+        });
         video.addEventListener('ended', function () { setPlaying(false); });
     });
 
