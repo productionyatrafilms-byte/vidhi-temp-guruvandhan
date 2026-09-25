@@ -204,7 +204,7 @@ body.gyan-open .btn-home {
    what actually guarantee a circle regardless of the letter inside. */
 #langSelect {
     position: fixed;
-    right: 2.6vw;
+    right: 5.5vw;
     top: 2.8vw;
     z-index: 20;
 }

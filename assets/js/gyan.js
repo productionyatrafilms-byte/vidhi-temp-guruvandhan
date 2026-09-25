@@ -34,10 +34,25 @@
         scrollPlay.classList.add('is-ended');
     }
 
+    // setting `.currentTime` before the browser has loaded the video's metadata
+    // (readyState 0 / HAVE_NOTHING — the normal state on a fresh click, since these videos have
+    // no `preload` and no `src` until now) is a no-op per spec: the seek is silently dropped and
+    // playback starts from 0 instead. Waiting for `loadedmetadata` when necessary is what makes
+    // the seek actually take effect.
+    function seekWhenReady(video, seconds) {
+        if (video.readyState >= 1) {
+            video.currentTime = seconds;
+        } else {
+            video.addEventListener('loadedmetadata', function () {
+                video.currentTime = seconds;
+            }, { once: true });
+        }
+    }
+
     function playFrom(seconds) {
         var video = activeVideo();
         if (!video) { return; }
-        video.currentTime = seconds;
+        seekWhenReady(video, seconds);
         video.play();
         setPlaying(true);
     }
@@ -59,7 +74,7 @@
 
         video.removeEventListener('timeupdate', onTimeUpdate);
         video.addEventListener('timeupdate', onTimeUpdate);
-        video.currentTime = start;
+        seekWhenReady(video, start);
         video.play();
         setPlaying(true);
     }
