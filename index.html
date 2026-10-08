@@ -97,10 +97,8 @@
             <img class="gyan-header__icon" src="./assets/images/Isolation_Mode_2.png" alt="">
         </div>
 
-        <!-- content card — one slide per Gyan type, each its own video
-             (assets/images/videos/1.mp4..5.mp4). Mati (1) and Shrut (2) also have real poster
-             art from Figma; Avadhi/Manahparyav/Keval (3-5) have no Figma frame so no poster
-             image exists for them yet — they just show the video's own first frame.
+        <!-- content card - a single slide holding the one video (assets/videos/1.webm); both
+             sutra pills play different parts of it (see gyan.js).
              videoframe.png (blank parchment interior) sits behind the art so the reveal never
              shows flat empty space while the scroll is rolling open — only ever the scroll's
              own paper, with the art cropping in on top of it as the gap widens. -->
@@ -111,30 +109,6 @@
                     <video class="gyan-slide__art" poster="./assets/images/thumbnail.png" playsinline controls preload="auto"
                         controlsList="nodownload noremoteplayback" disablePictureInPicture>
                         <source src="./assets/videos/1.webm" type="video/webm">
-                    </video>
-                </div>
-                <div class="gyan-slide" data-gyan="shrut">
-                    <video class="gyan-slide__art" poster="./assets/images/content-shrut.png" playsinline controls preload="auto"
-                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
-                        <source src="./assets/videos/2.mp4" type="video/mp4">
-                    </video>
-                </div>
-                <div class="gyan-slide" data-gyan="avadhi">
-                    <video class="gyan-slide__art" poster="./assets/images/content-Avadhi.png" playsinline controls preload="auto"
-                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
-                        <source src="./assets/videos/3.mp4" type="video/mp4">
-                    </video>
-                </div>
-                <div class="gyan-slide" data-gyan="manahparyav">
-                    <video class="gyan-slide__art" poster="./assets/images/content-Manahparyav.png" playsinline controls preload="auto"
-                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
-                        <source src="./assets/videos/4.mp4" type="video/mp4">
-                    </video>
-                </div>
-                <div class="gyan-slide" data-gyan="keval">
-                    <video class="gyan-slide__art" poster="./assets/images/content-Keval.png" playsinline controls preload="auto"
-                        controlsList="nodownload noremoteplayback" disablePictureInPicture>
-                        <source src="./assets/videos/5.mp4" type="video/mp4">
                     </video>
                 </div>
             </div>
@@ -181,7 +155,6 @@
     <script src="./assets/js/jquery-3.7.1.js"></script>
     <script src="./assets/js/custom.js"></script>
     <script src="./assets/js/gyan.js?v=7"></script>
-    <script src="./assets/js/djp.js"></script>
 </body>
 
 </html>
