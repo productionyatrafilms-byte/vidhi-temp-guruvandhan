@@ -49,9 +49,18 @@
         }
     }
 
+    // drops any pending segment-end watcher left by an earlier playSegment call
+    function clearSegment(video) {
+        if (video.segmentHandler) {
+            video.removeEventListener('timeupdate', video.segmentHandler);
+            video.segmentHandler = null;
+        }
+    }
+
     function playFrom(seconds) {
         var video = activeVideo();
         if (!video) { return; }
+        clearSegment(video);
         seekWhenReady(video, seconds);
         video.play();
         setPlaying(true);
@@ -72,7 +81,8 @@
             }
         }
 
-        video.removeEventListener('timeupdate', onTimeUpdate);
+        clearSegment(video);
+        video.segmentHandler = onTimeUpdate;
         video.addEventListener('timeupdate', onTimeUpdate);
         seekWhenReady(video, start);
         video.play();
@@ -102,16 +112,42 @@
 
     // both sutra buttons play the same (only) video, 1.mp4, but seek to their own timestamp first.
     // Ichhakar plays only its own 0:19-0:45 portion, then stops (see playSegment).
-    btnIchhakar.addEventListener('click', function () {
-        setActivePill(btnIchhakar);
-        playSegment(19, 45);
-    });
-    btnAbbhutthio.addEventListener('click', function () {
-        setActivePill(btnAbbhutthio);
-        playFrom(46);
-    });
+    // each sutra has its own thumbnail and start/end time. Picking a pill only resets the video
+    // to that sutra's thumbnail (nothing plays yet); the play button then starts it from its
+    // assigned time.
+    var points = {
+        ichhakar: { btn: btnIchhakar, poster: './assets/images/thumbnail.png', start: 19, end: 45 },
+        abbhutthio: { btn: btnAbbhutthio, poster: './assets/images/thumbnail.png', start: 46, end: null }
+    };
+    var current = null;
+
+    function selectPoint(point) {
+        var video = activeVideo();
+        current = point;
+        setActivePill(point.btn);
+        if (!video) { return; }
+        clearSegment(video);
+        video.pause();
+        video.pendingSegmentPause = false;
+        // once loaded the browser shows a video frame instead of the poster; preload 'none' +
+        // load() resets the element so the chosen thumbnail shows again
+        video.poster = point.poster;
+        video.preload = 'none';
+        video.load();
+        setPlaying(false);
+    }
+
+    function startCurrent() {
+        if (!current) { return false; }
+        if (current.end) { playSegment(current.start, current.end); } else { playFrom(current.start); }
+        return true;
+    }
+
+    btnIchhakar.addEventListener('click', function () { selectPoint(points.ichhakar); });
+    btnAbbhutthio.addEventListener('click', function () { selectPoint(points.abbhutthio); });
 
     btnPlay.addEventListener('click', function () {
+        if (startCurrent()) { return; }
         var video = activeVideo();
         if (!video) { return; }
         video.play();
@@ -127,6 +163,7 @@
     btnReplay.addEventListener('click', function () {
         var video = activeVideo();
         if (!video) { return; }
+        if (startCurrent()) { return; }
         video.currentTime = 0;
         video.play();
         setPlaying(true);
