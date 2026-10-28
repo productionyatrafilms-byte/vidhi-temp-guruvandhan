@@ -9,6 +9,7 @@ if (!currentLang) {
 
 function val(selectedLang) {
     sessionStorage.setItem("lang", selectedLang);
+    applySubtitles(selectedLang);
 
     let English = document.getElementById("en");
     let Hindi = document.getElementById("hi");
@@ -126,4 +127,25 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(go, 600);
         });
     });
+});
+
+// subtitles are English only — shown for English, hidden for Hindi / Gujrati. Re-applied when a
+// video (re)loads because load() resets its text tracks back to the <track default> state.
+function applySubtitles(lang) {
+    document.querySelectorAll("video").forEach(function (video) {
+        for (var i = 0; i < video.textTracks.length; i++) {
+            video.textTracks[i].mode = (lang === "English") ? "showing" : "disabled";
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("video").forEach(function (video) {
+        ["loadstart", "loadedmetadata"].forEach(function (evt) {
+            video.addEventListener(evt, function () {
+                applySubtitles(sessionStorage.getItem("lang") || "English");
+            });
+        });
+    });
+    applySubtitles(sessionStorage.getItem("lang") || "English");
 });
